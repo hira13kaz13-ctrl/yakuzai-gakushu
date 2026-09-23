@@ -15,5 +15,5 @@ function run(cmd, args, env = {}) {
 }
 
 run("npm", ["run", "build"], { VITE_BASE: "/yakuzai-gakushu/" });
-run("npx", ["--yes", "gh-pages@6", "-d", "dist", "-m", "Deploy site"]);
+run("npx", ["--yes", "gh-pages@6", "--dist", "dist", "--nojekyll"]);
 console.log("Published: https://hira13kaz13-ctrl.github.io/yakuzai-gakushu/");
