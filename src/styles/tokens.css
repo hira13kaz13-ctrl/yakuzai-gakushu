@@ -1,0 +1,71 @@
+:root {
+  --bg: #f3f7f8;
+  --bg-elevated: #ffffff;
+  --bg-muted: #e8f0f2;
+  --bg-soft: #dce9ec;
+  --ink: #12262c;
+  --ink-secondary: #3d5a63;
+  --ink-muted: #6b858e;
+  --line: #c5d6db;
+  --line-strong: #9bb4bc;
+  --accent: #0f766e;
+  --accent-strong: #0b5f59;
+  --accent-soft: #d5f0ed;
+  --navy: #1a3a4a;
+  --warn: #b45309;
+  --danger: #b91c1c;
+  --danger-soft: #fde8e8;
+  --ok: #047857;
+  --shadow: 0 10px 30px rgba(18, 38, 44, 0.08);
+  --radius: 14px;
+  --radius-sm: 10px;
+  --font-display: "Outfit", "IBM Plex Sans JP", sans-serif;
+  --font-body: "IBM Plex Sans JP", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  --header-h: 56px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #d9f3ef 0%, transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, #d7e6f0 0%, transparent 50%),
+    var(--bg);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
