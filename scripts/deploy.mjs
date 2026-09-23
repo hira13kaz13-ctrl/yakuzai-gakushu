@@ -2,8 +2,7 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const root = path.dirname(fileURLToPath(new URL(".", import.meta.url)));
-const appRoot = path.resolve(root, "..");
+const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 function run(cmd, args, env = {}) {
   const r = spawnSync(cmd, args, {
