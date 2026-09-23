@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "yakuzai-gakushu",
   "private": true,
   "version": "0.1.0",
@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "node scripts/deploy.mjs"
   },
   "dependencies": {
     "react": "^19.1.0",
