@@ -164,64 +164,106 @@ function collectPolicyDistractors(
   return out.slice(0, 3);
 }
 
+function splitDrugs(raw?: string): string[] {
+  if (!raw?.trim()) return [];
+  return raw
+    .split("／")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 function collectDrugDistractors(
   pool: PoolItem[],
   current: PoolItem,
 ): TreatmentChoiceMeta[] {
   const seen = new Set([current.answer]);
   const out: TreatmentChoiceMeta[] = [];
+  const answerSet = new Set(splitDrugs(current.drugText));
 
-  const others = shuffle(
+  const pushMeta = (
+    text: string,
+    role: "recommend" | "avoid",
+    problem: TreatmentProblem,
+    point: string,
+    policyText: string,
+    drugText: string,
+  ) => {
+    const t = text.trim();
+    if (!t || seen.has(t) || out.length >= 3) return;
+    // 正解セットと完全一致、または正解と同一成分のみの並び替えは除外
+    const set = new Set(splitDrugs(t));
+    if (
+      set.size === answerSet.size &&
+      [...set].every((d) => answerSet.has(d))
+    ) {
+      return;
+    }
+    seen.add(t);
+    out.push({
+      text: t,
+      role,
+      problem: problem.problem,
+      point,
+      isAnswer: false,
+      ref: problem.ref,
+      drugs: problem.drugs,
+      policyText,
+      drugText,
+    });
+  };
+
+  // 1) 同プロブレム・他ポイントの推奨薬剤セット（最優先）
+  const sameProblemOthers = shuffle(
     pool.filter(
       (p) =>
-        p.drugText &&
-        !(
-          p.problem.problem === current.problem.problem &&
-          p.point === current.point
-        ),
+        p.problem.problem === current.problem.problem &&
+        p.point !== current.point &&
+        Boolean(p.drugText),
     ),
   );
-
-  for (const o of others) {
-    if (out.length >= 3) break;
-    if (seen.has(o.drugText)) continue;
-    out.push({
-      text: o.drugText,
-      role: "recommend",
-      problem: o.problem.problem,
-      point: o.point,
-      isAnswer: false,
-      ref: o.problem.ref,
-      drugs: o.problem.drugs,
-      policyText: o.policyText,
-      drugText: o.drugText,
-    });
-    seen.add(o.drugText);
+  for (const o of sameProblemOthers) {
+    pushMeta(
+      o.drugText,
+      "recommend",
+      o.problem,
+      o.point,
+      o.policyText,
+      o.drugText,
+    );
   }
 
-  // 同プロブレムの治療薬一覧から単独薬剤をダミーに足す
-  if (out.length < 3 && current.problem.drugs) {
-    const answerSet = new Set(current.drugText.split("／").map((s) => s.trim()));
-    const singles = shuffle(
-      current.problem.drugs
-        .split("／")
-        .map((s) => s.trim())
-        .filter((s) => s && !answerSet.has(s) && !seen.has(s)),
+  // 2) 同プロブレムのカタログ薬から、正解に含まれない単独薬
+  const sameCatalog = shuffle(
+    splitDrugs(current.problem.drugs).filter((d) => !answerSet.has(d)),
+  );
+  for (const name of sameCatalog) {
+    pushMeta(
+      name,
+      "avoid",
+      current.problem,
+      current.point,
+      current.policyText,
+      name,
     );
-    for (const name of singles) {
-      if (out.length >= 3) break;
-      out.push({
-        text: name,
-        role: "avoid",
-        problem: current.problem.problem,
-        point: current.point,
-        isAnswer: false,
-        ref: current.problem.ref,
-        drugs: current.problem.drugs,
-        policyText: current.policyText,
-        drugText: name,
-      });
-      seen.add(name);
+  }
+
+  // 3) 不足分のみ他プロブレムの推奨薬剤セット
+  if (out.length < 3) {
+    const others = shuffle(
+      pool.filter(
+        (p) =>
+          p.problem.problem !== current.problem.problem && Boolean(p.drugText),
+      ),
+    );
+    for (const o of others) {
+      pushMeta(
+        o.drugText,
+        "recommend",
+        o.problem,
+        o.point,
+        o.policyText,
+        o.drugText,
+      );
     }
   }
 

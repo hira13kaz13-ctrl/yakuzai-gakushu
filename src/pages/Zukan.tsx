@@ -34,6 +34,7 @@ export function Zukan() {
   const [sortKey, setSortKey] = useState<SortKey>("generic");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<"list" | "detail">("list");
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -180,6 +181,9 @@ export function Zukan() {
           selectedTags={selectedTags}
           onToggleTag={(t) => setSelectedTags((prev) => toggleValue(prev, t))}
           onClearFilters={clearFilters}
+          compact
+          filtersOpen={filtersOpen}
+          onToggleFiltersOpen={() => setFiltersOpen((v) => !v)}
         />
         <div className="result-meta">
           {filtered.length} / {drugs.length} 件
@@ -191,6 +195,7 @@ export function Zukan() {
           onSelect={(id) => {
             setSelectedId(id);
             setMobileView("detail");
+            setFiltersOpen(false);
           }}
         />
       </aside>
@@ -200,6 +205,7 @@ export function Zukan() {
           onTagClick={(tag) => {
             setSelectedTags((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
             setMobileView("list");
+            setFiltersOpen(true);
           }}
           onBackToList={() => setMobileView("list")}
         />

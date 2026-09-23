@@ -17,6 +17,10 @@ type FilterBarProps = {
   selectedTags: string[];
   onToggleTag: (tag: string) => void;
   onClearFilters: () => void;
+  /** スマホ用: 詳細フィルタの開閉 */
+  filtersOpen?: boolean;
+  onToggleFiltersOpen?: () => void;
+  compact?: boolean;
 };
 
 export function FilterBar({
@@ -36,10 +40,19 @@ export function FilterBar({
   selectedTags,
   onToggleTag,
   onClearFilters,
+  filtersOpen = true,
+  onToggleFiltersOpen,
+  compact = false,
 }: FilterBarProps) {
+  const activeCount =
+    selectedKubuns.length +
+    (selectedBunrui ? 1 : 0) +
+    (injectable ? 1 : 0) +
+    selectedTags.length;
+
   return (
-    <div className="filter-bar">
-      <div className="filter-field">
+    <div className={`filter-bar ${compact ? "compact" : ""}`}>
+      <div className="filter-field filter-search">
         <label htmlFor="drug-search">検索</label>
         <input
           id="drug-search"
@@ -47,96 +60,119 @@ export function FilterBar({
           placeholder="一般名・商品名・ID"
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
+          enterKeyHint="search"
         />
       </div>
 
-      <div className="filter-field">
-        <label>区分</label>
-        <div className="chip-row" role="group" aria-label="区分フィルタ">
-          {kubuns.map((k) => (
-            <button
-              key={k}
-              type="button"
-              className={`chip ${selectedKubuns.includes(k) ? "active" : ""}`}
-              onClick={() => onToggleKubun(k)}
-            >
-              {k}
+      {onToggleFiltersOpen ? (
+        <div className="filter-mobile-tools">
+          <button
+            type="button"
+            className={`filter-toggle ${filtersOpen ? "open" : ""}`}
+            onClick={onToggleFiltersOpen}
+            aria-expanded={filtersOpen}
+          >
+            絞り込み{activeCount > 0 ? `（${activeCount}）` : ""}
+            <span aria-hidden>{filtersOpen ? "▲" : "▼"}</span>
+          </button>
+          {activeCount > 0 || query ? (
+            <button type="button" className="filter-clear-sm" onClick={onClearFilters}>
+              クリア
             </button>
-          ))}
+          ) : null}
         </div>
-      </div>
+      ) : null}
 
-      <div className="filter-row">
+      <div className={`filter-advanced ${filtersOpen ? "open" : ""}`}>
         <div className="filter-field">
-          <label htmlFor="bunrui">分類</label>
-          <select
-            id="bunrui"
-            value={selectedBunrui}
-            onChange={(e) => onBunruiChange(e.target.value)}
-          >
-            <option value="">すべて</option>
-            {bunruis.map((b) => (
-              <option key={b} value={b}>
-                {b}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="filter-field">
-          <label htmlFor="injectable">注射/非注射</label>
-          <select
-            id="injectable"
-            value={injectable}
-            onChange={(e) => onInjectableChange(e.target.value)}
-          >
-            <option value="">すべて</option>
-            <option value="非注射">非注射</option>
-            <option value="注射">注射</option>
-            <option value="注射・非注射">注射・非注射</option>
-          </select>
-        </div>
-        <div className="filter-field">
-          <label htmlFor="sort">ソート</label>
-          <select
-            id="sort"
-            value={sortKey}
-            onChange={(e) => onSortChange(e.target.value as SortKey)}
-          >
-            <option value="generic">一般名</option>
-            <option value="kubun">区分</option>
-            <option value="price_score">薬価スコア</option>
-            <option value="usage_frequency">使用頻度</option>
-          </select>
-        </div>
-      </div>
-
-      {popularTags.length > 0 ? (
-        <div className="filter-field">
-          <label>適応タグ（頻出）</label>
-          <div className="chip-row">
-            {popularTags.map((tag) => (
+          <label>区分</label>
+          <div className="chip-row" role="group" aria-label="区分フィルタ">
+            {kubuns.map((k) => (
               <button
-                key={tag}
+                key={k}
                 type="button"
-                className={`chip ${selectedTags.includes(tag) ? "active" : ""}`}
-                onClick={() => onToggleTag(tag)}
+                className={`chip ${selectedKubuns.includes(k) ? "active" : ""}`}
+                onClick={() => onToggleKubun(k)}
               >
-                {tag}
+                {k}
               </button>
             ))}
           </div>
         </div>
-      ) : null}
 
-      {(selectedKubuns.length > 0 ||
-        selectedBunrui ||
-        injectable ||
-        selectedTags.length > 0 ||
-        query) && (
-        <button type="button" className="nav-back" onClick={onClearFilters}>
-          フィルタをクリア
-        </button>
-      )}
+        <div className="filter-row">
+          <div className="filter-field">
+            <label htmlFor="bunrui">分類</label>
+            <select
+              id="bunrui"
+              value={selectedBunrui}
+              onChange={(e) => onBunruiChange(e.target.value)}
+            >
+              <option value="">すべて</option>
+              {bunruis.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-field">
+            <label htmlFor="injectable">注射/非注射</label>
+            <select
+              id="injectable"
+              value={injectable}
+              onChange={(e) => onInjectableChange(e.target.value)}
+            >
+              <option value="">すべて</option>
+              <option value="非注射">非注射</option>
+              <option value="注射">注射</option>
+              <option value="注射・非注射">注射・非注射</option>
+            </select>
+          </div>
+          <div className="filter-field">
+            <label htmlFor="sort">ソート</label>
+            <select
+              id="sort"
+              value={sortKey}
+              onChange={(e) => onSortChange(e.target.value as SortKey)}
+            >
+              <option value="generic">一般名</option>
+              <option value="kubun">区分</option>
+              <option value="price_score">薬価スコア</option>
+              <option value="usage_frequency">使用頻度</option>
+            </select>
+          </div>
+        </div>
+
+        {popularTags.length > 0 ? (
+          <div className="filter-field">
+            <label>適応タグ（頻出）</label>
+            <div className="chip-row">
+              {popularTags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  className={`chip ${selectedTags.includes(tag) ? "active" : ""}`}
+                  onClick={() => onToggleTag(tag)}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {!onToggleFiltersOpen &&
+        (selectedKubuns.length > 0 ||
+          selectedBunrui ||
+          injectable ||
+          selectedTags.length > 0 ||
+          query) ? (
+          <button type="button" className="nav-back" onClick={onClearFilters}>
+            フィルタをクリア
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }
